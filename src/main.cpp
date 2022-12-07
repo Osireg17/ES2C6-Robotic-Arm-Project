@@ -22,7 +22,7 @@ int z_axis_degree = servo_z_axis.read(); int clamp_degree = servo_clamp.read();
 // The code for the gripper now
 const int pwm = 3; const int dir = 8;
 uint8_t motorSpeed = 50; // Defining the speed of the motor using 8 bit unsigned integer
-bool bHigh  = false; // Defining the direction of the motor
+bool bHigh = false; // Defining the direction of the motor
 bool bChangeDir = false; // Defining the direction of the motor
 
 const int buttonPin = 2; // the number of the pushbutton pin
@@ -57,7 +57,7 @@ void joyStick() {
 
   if(left_joystick_x_value < 340){
     y_axis_degree -= 4;
-  }else if(left_joystick_x_value > 680){
+  }else if (left_joystick_x_value > 660){
     y_axis_degree += 4;
   }
 
@@ -112,27 +112,27 @@ void gripper() {
   distance_cm = 0.017 * duration_us;
 
   if (buttonState == LOW) {
-    if(bHigh){
-      bHigh = false;
+    if(bHigh){ // if false then change
+      bChangeDir = false;
     }
     else{
-      bHigh = true;
+      bChangeDir = true;
     }
     bHigh = !bHigh;
   }else if(distance_cm > DISTANCE_THRESHOLD){
     if(bHigh){
-      bHigh = false;
+      bChangeDir = false;
     }
     else{
-      bHigh = true;
+      bChangeDir = true;
     }
     bHigh = !bHigh;
 }else{
   if(bHigh){
-    bHigh = false;
+    bChangeDir = false;
   }
   else{
-    bHigh = true;
+    bChangeDir = true;
   }
   bHigh = !bHigh;
 }
