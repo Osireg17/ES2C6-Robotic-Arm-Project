@@ -1,32 +1,29 @@
 #include <Arduino.h>
 
-//The code used to set up the ultrasonic sensor at the top of the robot arm
-const int TRIG_PIN = 7; const int ECHO_PIN = 8; const int ledPin  = 13;
-const int DISTANCE_THRESHOLD = 15; // this is the maximum distance the sensor can detect
+const int TRIG_PIN = 7; const int ECHO_PIN = 12;
+const int DISTANCE_THRESHOLD = 15;
 float duration_us, distance_cm;
 
-int forceValue = 0;
-const int FORCE_THRESHOLD = 1000; // this is the maximum force the sensor can detect
-const int FORCE_PIN = A4;
+const int pwm = 3; const int dir = 8;
+const int forcePin = A4; const int ledPin = 13;
+int forceValue = 0; uint8_t motorSpeed = 60;
+bool bHigh = false; bool bChangeDir = false;
+const int buttonPin = 2; int buttonState = 0;
 
 #include <Servo.h>
-Servo servo_x_axis; Servo servo_y_axis; Servo servo_z_axis; Servo servo_clamp;
-int x_axis_degree = servo_x_axis.read(); int y_axis_degree = servo_y_axis.read(); // This reads the current position of the servo
-int z_axis_degree = servo_z_axis.read(); int clamp_degree = servo_clamp.read();
+Servo servo_x_axis; Servo servo_y_axis; 
+Servo servo_z_axis; Servo servo_clamp;
+int x_axis_degree = servo_x_axis.read();
+int y_axis_degree = servo_y_axis.read();
+int z_axis_degree = servo_z_axis.read();
+int clamp_degree = servo_clamp.read();
 
 #define left_joystick_x A0
 #define left_joystick_y A1
 #define right_joystick_x A2
 #define right_joystick_y A3
 
-// The code for the gripper now
-const int pwm = 3; const int dir = 8;
-uint8_t motorSpeed = 50; // Defining the speed of the motor using 8 bit unsigned integer
-bool bHigh = false; // Defining the direction of the motor
-bool bChangeDir = false; // Defining the direction of the motor
 
-const int buttonPin = 2; // the number of the pushbutton pin
-int buttonState = 0; // variable for reading the pushbutton status
 
 void setup() {
   Serial.begin(9600);
@@ -41,7 +38,7 @@ void setup() {
 
 void loop() {
   
-  // These two will be used to control the gripper and run at the same time
+  // These two Q  1`will be used to control the gripper and run at the same time
   joyStick(); // This is the code for the joystick
   gripper(); // This is the code for the gripper
 
@@ -56,27 +53,27 @@ void joyStick() {
   int right_joystick_y_value = analogRead(right_joystick_y);
 
   if(left_joystick_x_value < 340){
-    y_axis_degree -= 4;
+    y_axis_degree -= 2;
   }else if (left_joystick_x_value > 660){
-    y_axis_degree += 4;
+    y_axis_degree += 2;
   }
 
   if(left_joystick_y_value < 340){
-    x_axis_degree -= 4;
+    x_axis_degree -= 2;
   }else if(left_joystick_y_value > 680){
-    x_axis_degree += 4;
+    x_axis_degree += 2;
   }
 
   if(right_joystick_x_value < 340){
-    z_axis_degree -= 4;
+    z_axis_degree -= 2;
   }else if(right_joystick_x_value > 680){
-    z_axis_degree += 4;
+    z_axis_degree += 2;
   }
 
   if(right_joystick_y_value < 340){
-    clamp_degree -= 4;
+    clamp_degree -= 2;
   }else if(right_joystick_y_value > 680){
-    clamp_degree += 4;
+    clamp_degree += 2;
   }
 
   z_axis_degree = min(145, max(15, z_axis_degree));
@@ -103,7 +100,7 @@ void joyStick() {
 void gripper() {
 
   buttonState = digitalRead(buttonPin);
-  forceValue = analogRead(FORCE_PIN);
+  forceValue = analogRead(forcePin);
 
   digitalWrite(TRIG_PIN, HIGH);
   delayMicroseconds(5);
@@ -111,41 +108,42 @@ void gripper() {
   duration_us = pulseIn(ECHO_PIN, HIGH);
   distance_cm = 0.017 * duration_us;
 
-  if (buttonState == LOW) {
-    if(bHigh){ // if false then change
-      bChangeDir = false;
-    }
-    else{
-      bChangeDir = true;
-    }
-    bHigh = !bHigh;
-  }else if(distance_cm > DISTANCE_THRESHOLD){
+  if((forceValue < 100) && (buttonState == 1)){
+    if((distance_cm < DISTANCE_THRESHOLD) && (buttonState == 1)){
+      if(bHigh){
+        bChangeDir = false;
+      }
+      else{
+        bChangeDir = true;
+      }
+      bHigh = !bHigh;
+  }else{
     if(bHigh){
+      bChangeDir = true;
+    }else{
       bChangeDir = false;
     }
-    else{
-      bChangeDir = true;
-    }
     bHigh = !bHigh;
+  }
 }else{
   if(bHigh){
-    bChangeDir = false;
-  }
-  else{
     bChangeDir = true;
+  }else{
+    bChangeDir = false;
   }
   bHigh = !bHigh;
 }
 
 if(bChangeDir){
   analogWrite(pwm, 0);
+  delay(250);
 }
-if((bHigh == true)){
-  digitalWrite(ledPin, LOW);
+if((bHigh)){
+  digitalWrite(ledPin, HIGH);
   digitalWrite(dir, LOW);
 }
 else{
-  digitalWrite(ledPin, HIGH);
+  digitalWrite(ledPin, LOW);
   digitalWrite(dir, HIGH);
 }
 analogWrite(pwm, motorSpeed);
