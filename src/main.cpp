@@ -2,12 +2,14 @@
 
 const int TRIG_PIN = 7; const int ECHO_PIN = 12;
 const int DISTANCE_THRESHOLD = 15;
-float duration_us, distance_cm;
+float duration_us, distance_cm; // duration in microseconds, distance in centimeters
 
-const int pwm = 3; const int dir = 8;
+const int pwm = 3; //pulse width modulation
+const int dir = 8; // direction
 const int forcePin = A4; const int ledPin = 13;
 int forceValue = 0; uint8_t motorSpeed = 60;
-bool bHigh = false; bool bChangeDir = false;
+bool bHigh = false;  // boolean high
+bool bChangeDir = false; // boolean change direction
 const int buttonPin = 2; int buttonState = 0;
 
 #include <Servo.h>
@@ -27,8 +29,11 @@ int clamp_degree = servo_clamp.read();
 
 void setup() {
   Serial.begin(9600);
-  pinMode(TRIG_PIN, OUTPUT); pinMode(ECHO_PIN, INPUT); pinMode(ledPin, OUTPUT);
-  pinMode(pwm, OUTPUT); pinMode(dir, OUTPUT);
+  pinMode(TRIG_PIN, OUTPUT); // Sets the trigPin as an Output
+  pinMode(ECHO_PIN, INPUT); // Sets the echoPin as an Input
+  pinMode(ledPin, OUTPUT); // Sets the ledPin as an Output
+  pinMode(pwm, OUTPUT); // Sets the pwm as an Output
+  pinMode(dir, OUTPUT); // Sets the dir as an Output
   pinMode(buttonPin, INPUT_PULLUP);
   servo_z_axis.attach(11); // servo 1
   servo_y_axis.attach(5); // servo 2
